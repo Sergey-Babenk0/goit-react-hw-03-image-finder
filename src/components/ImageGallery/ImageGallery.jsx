@@ -3,14 +3,17 @@ import { ImgageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem'
 import Loader from 'components/Loader/Loader';
 import { Component } from 'react';
 import css from './image-gallery.module.css';
+import imagesAPI from '../sources/pixabay';
+import PropTypes, { shape } from 'prop-types';
 
 export class ImageGallery extends Component {
   state = {
-    images: 'null',
+    images: [],
     error: 'null',
     status: 'idle',
     page: 1,
   };
+
   componentDidUpdate(PrevProps, PrevState) {
     const prevValue = PrevProps.value;
     const nextValue = this.props.value;
@@ -18,32 +21,43 @@ export class ImageGallery extends Component {
     if (prevValue !== nextValue) {
       console.log('Изменился запрос');
 
-      this.setState({ status: 'pending' });
+      this.setState({ status: 'pending', page: 1 });
 
       setTimeout(() => {
-        fetch(
-          `https://pixabay.com/api/?q=${nextValue}&page=${this.state.page}&key=34683209-8b2cd5e146e244d990d25d370&image_type=photo&orientation=horizontal&per_page=12`
-        )
-          .then(response => {
-            if (response.ok) {
-              return response.json();
-            }
-            return Promise.reject(
-              new Error(`Нет результатов по запросу ${nextValue}`)
-            );
-          })
-          .then(images => {
-            this.setState({ images, status: 'resolved' });
-            this.onLoad();
+        imagesAPI
+          .fetchImages(nextValue, this.state.page)
+          .then(pictures => {
+            console.log(pictures.hits);
+            this.setState(prevState => ({
+              images: [...pictures.hits],
+              status: 'resolved',
+            }));
           })
           .catch(error => this.setState({ error, status: 'rejected' }));
       }, 1500);
     }
   }
 
-  onLoad = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  imagesClear = () => {
+    this.setState({ images: [] });
   };
+
+  onLoad = () => {
+    console.log(this.state.page);
+    this.setState(prevState => ({
+      page: prevState.page + 1,
+    }));
+
+    imagesAPI.fetchImages(this.state.page, this.props.value).then(pictures => {
+      this.setState(prevState => ({
+        images: [...prevState.images, ...pictures.hits],
+      }));
+    });
+    console.log(this.props.value);
+    console.log(this.state.page);
+    console.log(this.state.images);
+  };
+
   render() {
     const { images, error, status } = this.state;
 
@@ -52,7 +66,7 @@ export class ImageGallery extends Component {
     }
 
     if (status === 'pending') {
-      return <Loader />;
+      return <Loader clearImages={this.imagesClear} />;
     }
 
     if (status === 'rejected') {
@@ -63,7 +77,7 @@ export class ImageGallery extends Component {
       return (
         <>
           <div className={css.ImageGallery}>
-            {images.hits.map(hit => {
+            {images.map(hit => {
               return (
                 <ImgageGalleryItem
                   key={hit.id}
@@ -74,9 +88,20 @@ export class ImageGallery extends Component {
               );
             })}
           </div>
-          {images.hits.length !== 0 && <ButtonLoadMore onLoad={this.onLoad} />}
+          {images.length !== 0 && <ButtonLoadMore onLoad={this.onLoad} />}
         </>
       );
     }
   }
 }
+
+ImageGallery.propTypes = {
+  images: PropTypes.arrayOf(
+    shape({
+      webformatURL: PropTypes.string.isRequired,
+      largeImageURL: PropTypes.string,
+      tags: PropTypes.string.isRequired,
+      key: PropTypes.string.isRequired,
+    })
+  ),
+};

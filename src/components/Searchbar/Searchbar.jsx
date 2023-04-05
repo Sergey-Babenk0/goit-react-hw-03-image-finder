@@ -1,6 +1,6 @@
 import css from './search-bar.module.css';
 import { Component } from 'react';
-// import { toast } from 'react-toastify';
+import PropTypes from 'prop-types';
 
 export class SearchBar extends Component {
   state = {
@@ -32,10 +32,9 @@ export class SearchBar extends Component {
           </button>
 
           <input
-            class="input"
             type="text"
-            autocomplete="off"
-            autofocus
+            autoComplete="off"
+            autoFocus
             placeholder="Search images and photos"
             className={css.SearchFormInput}
             onChange={this.handleValueChange}
@@ -46,3 +45,8 @@ export class SearchBar extends Component {
     );
   }
 }
+
+SearchBar.propTypes = {
+  onChange: PropTypes.func,
+  value: PropTypes.string,
+};

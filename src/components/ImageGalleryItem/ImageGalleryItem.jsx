@@ -1,6 +1,6 @@
 import { Component } from 'react';
 import css from './image-gallery-item.module.css';
-// import PropTypes from 'prop-types';
+import PropTypes from 'prop-types';
 import { Modal } from 'components/Modal/Modal';
 
 export class ImgageGalleryItem extends Component {
@@ -38,3 +38,9 @@ export class ImgageGalleryItem extends Component {
     );
   }
 }
+
+ImgageGalleryItem.propTypes = {
+  image: PropTypes.string,
+  tags: PropTypes.string.isRequired,
+  onClose: PropTypes.func,
+};
