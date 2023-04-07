@@ -21,7 +21,7 @@ export class ImageGallery extends Component {
     if (prevValue !== nextValue) {
       console.log('Изменился запрос');
 
-      this.setState({ status: 'pending' });
+      this.setState({ status: 'pending', page: 1 });
 
       setTimeout(() => {
         imagesAPI
@@ -45,12 +45,14 @@ export class ImageGallery extends Component {
   onLoad = () => {
     console.log(this.state.page);
 
-    imagesAPI.fetchImages(this.props.value, this.state.page).then(pictures => {
-      this.setState(prevState => ({
-        page: prevState.page + 1,
-        images: [...prevState.images, ...pictures.hits],
-      }));
-    });
+    imagesAPI
+      .fetchImages(this.props.value, this.state.page + 1)
+      .then(pictures => {
+        this.setState(prevState => ({
+          page: prevState.page + 1,
+          images: [...prevState.images, ...pictures.hits],
+        }));
+      });
     console.log(this.props.value);
     console.log(this.state.page);
     console.log(this.state.images);
